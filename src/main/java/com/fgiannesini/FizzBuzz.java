@@ -1,6 +1,7 @@
+package com.fgiannesini;
+
 import jdk.incubator.vector.IntVector;
 import jdk.incubator.vector.VectorMask;
-import jdk.incubator.vector.VectorOperators;
 import jdk.incubator.vector.VectorSpecies;
 
 import java.util.Arrays;
@@ -10,9 +11,6 @@ public class FizzBuzz {
     private static final int FIZZ = -1;
     private static final int BUZZ = -2;
     private static final int FIZZ_BUZZ = -3;
-    private final IntVector fizzVector = IntVector.zero(SPECIES).add(FIZZ);
-    private final IntVector buzzVector = IntVector.zero(SPECIES).add(BUZZ);
-    private final IntVector fizzBuzzVector = fizzVector.add(buzzVector);
 
     private static final VectorSpecies<Integer> SPECIES = IntVector.SPECIES_PREFERRED;
 
@@ -21,20 +19,21 @@ public class FizzBuzz {
         int[] result = new int[inputs.length];
         int offset = 0;
         int upperBound = SPECIES.loopBound(inputs.length);
-
         for (; offset < upperBound; offset += SPECIES.length()) {
             IntVector inputPart = IntVector.fromArray(SPECIES, inputs, offset);
+            VectorMask<Integer> threeMask = moduloMask(inputPart, 3);
+            VectorMask<Integer> fiveMask = moduloMask(inputPart, 5);
             IntVector resultPart = inputPart
-                    .blend(fizzVector, moduloMask(inputPart, 3))
-                    .blend(buzzVector, moduloMask(inputPart, 5))
-                    .blend(fizzBuzzVector, moduloMask(inputPart, 15));
+                    .blend(FIZZ, threeMask)
+                    .blend(BUZZ, fiveMask)
+                    .blend(FIZZ_BUZZ, threeMask.and(fiveMask));
             resultPart.intoArray(result, offset);
         }
         return result;
     }
 
     private VectorMask<Integer> moduloMask(IntVector inputVector, int factor) {
-        return inputVector.div(factor).mul(factor).compare(VectorOperators.EQ, inputVector);
+        return inputVector.div(factor).mul(factor).eq(inputVector);
     }
 
     public int[] scalarFizzBuzz(int[] values) {
@@ -49,6 +48,5 @@ public class FizzBuzz {
             return result;
         }).toArray();
     }
-
 
 }
