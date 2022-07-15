@@ -8,6 +8,9 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.random.RandomGenerator;
 
+@Warmup(iterations = 2)
+@Measurement(iterations = 2)
+@Fork(value = 1)
 public class Bench {
 
     private int[] data() {
@@ -15,29 +18,26 @@ public class Bench {
     }
 
     @Benchmark
-    @Warmup(iterations = 1)
-    @Measurement(iterations = 1)
-    @Fork(value = 1)
-    public void should_measure_fizz_buzz_scalar(Blackhole bh) {
-        FizzBuzz fizzBuzz = new FizzBuzz();
-        bh.consume(fizzBuzz.scalarFizzBuzz(data()));
+    public void should_measure_fizz_buzz_sequential_scalar(Blackhole bh) {
+        FizzBuzzScalar fizzBuzz = new FizzBuzzScalar();
+        bh.consume(fizzBuzz.scalarSequentialFizzBuzz(data()));
     }
 
     @Benchmark
-    @Warmup(iterations = 1)
-    @Measurement(iterations = 1)
-    @Fork(value = 1)
     public void should_measure_fizz_buzz_parallel_scalar(Blackhole bh) {
-        FizzBuzz fizzBuzz = new FizzBuzz();
+        FizzBuzzScalar fizzBuzz = new FizzBuzzScalar();
         bh.consume(fizzBuzz.scalarParallelFizzBuzz(data()));
     }
 
     @Benchmark
-    @Warmup(iterations = 1)
-    @Measurement(iterations = 1)
-    @Fork(value = 1)
-    public void should_measure_fizz_buzz_simd(Blackhole bh) {
-        FizzBuzz fizzBuzz = new FizzBuzz();
-        bh.consume(fizzBuzz.simdFizzBuzz(data()));
+    public void should_measure_fizz_buzz_sequential_simd(Blackhole bh) {
+        FizzBuzzSimd fizzBuzz = new FizzBuzzSimd();
+        bh.consume(fizzBuzz.simdSequentialFizzBuzz(data()));
+    }
+
+    @Benchmark
+    public void should_measure_fizz_buzz_parallel_simd(Blackhole bh) {
+        FizzBuzzSimd fizzBuzz = new FizzBuzzSimd();
+        bh.consume(fizzBuzz.simdParallelFizzBuzz(data()));
     }
 }
