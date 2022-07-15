@@ -17,9 +17,8 @@ public class FizzBuzz {
     public int[] simdFizzBuzz(int[] inputs) {
 
         int[] result = new int[inputs.length];
-        int offset = 0;
         int upperBound = SPECIES.loopBound(inputs.length);
-        for (; offset < upperBound; offset += SPECIES.length()) {
+        for (int offset = 0; offset < upperBound; offset += SPECIES.length()) {
             IntVector inputPart = IntVector.fromArray(SPECIES, inputs, offset);
             VectorMask<Integer> threeMask = moduloMask(inputPart, 3);
             VectorMask<Integer> fiveMask = moduloMask(inputPart, 5);
@@ -37,16 +36,24 @@ public class FizzBuzz {
     }
 
     public int[] scalarFizzBuzz(int[] values) {
-        return Arrays.stream(values).map(result -> {
-            if (result % 3 == 0 && result % 5 == 0) {
-                result = FIZZ_BUZZ;
-            } else if (result % 3 == 0) {
-                result = FIZZ;
-            } else if (result % 5 == 0) {
-                result = BUZZ;
-            }
-            return result;
-        }).toArray();
+        return Arrays.stream(values).map(this::isFizzBuzz).toArray();
     }
 
+    public int[] scalarParallelFizzBuzz(int[] values) {
+        return Arrays.stream(values)
+                .parallel()
+                .map(this::isFizzBuzz)
+                .toArray();
+    }
+
+    private int isFizzBuzz(int result) {
+        if (result % 3 == 0 && result % 5 == 0) {
+            result = FIZZ_BUZZ;
+        } else if (result % 3 == 0) {
+            result = FIZZ;
+        } else if (result % 5 == 0) {
+            result = BUZZ;
+        }
+        return result;
+    }
 }

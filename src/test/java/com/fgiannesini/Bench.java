@@ -27,6 +27,15 @@ public class Bench {
     @Warmup(iterations = 1)
     @Measurement(iterations = 1)
     @Fork(value = 1)
+    public void should_measure_fizz_buzz_parallel_scalar(Blackhole bh) {
+        FizzBuzz fizzBuzz = new FizzBuzz();
+        bh.consume(fizzBuzz.scalarParallelFizzBuzz(data()));
+    }
+
+    @Benchmark
+    @Warmup(iterations = 1)
+    @Measurement(iterations = 1)
+    @Fork(value = 1)
     public void should_measure_fizz_buzz_simd(Blackhole bh) {
         FizzBuzz fizzBuzz = new FizzBuzz();
         bh.consume(fizzBuzz.simdFizzBuzz(data()));
