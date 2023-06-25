@@ -47,8 +47,21 @@ public class FizzBuzzSimd {
     }
 
     private int[] toArray(Stream<Container> containerStream, int length) {
-        return containerStream.collect(() -> new int[length], (tab, container) -> container.intVector().intoArray(tab, container.offset()), (tab1, tab2) -> {
-        });
+        return containerStream.collect(() -> new int[length],
+                (tab, container) -> container.intVector().intoArray(tab, container.offset()),
+                (tab1, tab2) -> {
+                    int index = indexOfFirstZero(tab1);
+                    System.arraycopy(tab2, index, tab1, index, tab1.length - index);
+                });
+    }
+
+    private int indexOfFirstZero(int[] tab) {
+        for (int i = tab.length - 1; i >= 0; i--) {
+            if (tab[i] != 0) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 
     private IntStream intStream(int[] inputs) {
