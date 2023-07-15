@@ -1,8 +1,6 @@
 package com.fgiannesini;
 
-import jdk.incubator.vector.IntVector;
-import jdk.incubator.vector.VectorMask;
-import jdk.incubator.vector.VectorSpecies;
+import jdk.incubator.vector.*;
 
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -17,12 +15,9 @@ public class FizzBuzzSimd {
 
     public int[] simdSequentialFizzBuzz(int[] inputs) {
         var containerStream = intStream(inputs)
-                .mapToObj(offset -> {
-                    IntVector intVector1 = IntVector.fromArray(SPECIES, inputs, offset);
-                    IntVector intVector = fizzBuzz(intVector1);
-                    return new Container(offset, intVector);
-                });
-        return toArray(containerStream, inputs.length);
+                .mapToObj(offset -> new Container(offset, IntVector.fromArray(SPECIES, inputs, offset)))
+                .map(container -> new Container(container.offset(), fizzBuzz(container.intVector())));
+        return toArray(containerStream);
     }
 
     public int[] simdParallelFizzBuzz(int[] inputs) {
@@ -30,7 +25,7 @@ public class FizzBuzzSimd {
                 .parallel()
                 .mapToObj(offset -> new Container(offset, IntVector.fromArray(SPECIES, inputs, offset)))
                 .map(container -> new Container(container.offset(), fizzBuzz(container.intVector())));
-        return toArray(containerStream, inputs.length);
+        return toArray(containerStream);
     }
 
     private IntVector fizzBuzz(IntVector inputPart) {
@@ -46,22 +41,14 @@ public class FizzBuzzSimd {
         return inputVector.div(factor).mul(factor).eq(inputVector);
     }
 
-    private int[] toArray(Stream<Container> containerStream, int length) {
-        return containerStream.collect(() -> new int[length],
-                (tab, container) -> container.intVector().intoArray(tab, container.offset()),
-                (tab1, tab2) -> {
-                    int index = indexOfFirstZero(tab1);
-                    System.arraycopy(tab2, index, tab1, index, tab1.length - index);
-                });
-    }
-
-    private int indexOfFirstZero(int[] tab) {
-        for (int i = tab.length - 1; i >= 0; i--) {
-            if (tab[i] != 0) {
-                return i + 1;
-            }
-        }
-        return 0;
+    private int[] toArray(Stream<Container> containerStream) {
+        return containerStream.map(container -> {
+                    int[] target =  new int[SPECIES.length()];
+                    container.intVector().intoArray(target, 0);
+                    return target;
+                })
+                .flatMapToInt(IntStream::of)
+                .toArray();
     }
 
     private IntStream intStream(int[] inputs) {
