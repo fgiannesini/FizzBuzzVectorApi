@@ -42,11 +42,7 @@ public class FizzBuzzSimd {
     }
 
     private int[] toArray(Stream<Container> containerStream) {
-        return containerStream.map(container -> {
-                    int[] target =  new int[SPECIES.length()];
-                    container.intVector().intoArray(target, 0);
-                    return target;
-                })
+        return containerStream.map(container -> container.intVector().toArray())
                 .flatMapToInt(IntStream::of)
                 .toArray();
     }
